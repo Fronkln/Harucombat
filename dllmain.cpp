@@ -30,13 +30,13 @@ void ApplyEncounterTables()
     //Apply EncounterTable_5 if it exists, otherwise, default to EncounterTable_2 which is Akiyama
     if (std::filesystem::exists(encounterTable5Path))
     {
-        strcpy_s(szEncountTable2, strlen(HARUKA_ENCOUNTER_TABLE_PATH) + 1, HARUKA_ENCOUNTER_TABLE_PATH);
+        strcpy_s(szEncountTable2, strlen(HARUKA_ENCOUNTER_TABLE) + 1, HARUKA_ENCOUNTER_TABLE);
     }
 
     //Apply EncounterPrizeTable_5 if it exists, otherwise, default to EncounterPrizeTable_2 which is Akiyama
     if (std::filesystem::exists(encounterPrizeTable5Path))
     {
-        strcpy_s(szEncountPrizeTable2, strlen(HARUKA_ENCOUNTER_PRIZE_TABLE_PATH) + 1, HARUKA_ENCOUNTER_PRIZE_TABLE_PATH);
+        strcpy_s(szEncountPrizeTable2, strlen(HARUKA_ENCOUNTER_PRIZE_TABLE) + 1, HARUKA_ENCOUNTER_PRIZE_TABLE);
     }
 }
 

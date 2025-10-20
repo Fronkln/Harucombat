@@ -17,5 +17,5 @@ constexpr auto FALLBACK_MOTION_PAR = "BattlePlayerAkiyama";
 constexpr auto HARUKA_ENCOUNTER_TABLE = "data/stay/EncountTable_5.bin";
 constexpr auto HARUKA_ENCOUNTER_PRIZE_TABLE = "data/stay/EncountPrizeTable_5.bin";
 
-constexpr auto HARUKA_ENCOUNTER_TABLE_PATH = "data/stay/EncountTable_5.bin";
+constexpr auto HARUKA_ENCOUNTER_TABLE_PATH = "data/stay/stay_en/EncountTable_5.bin";
 constexpr auto HARUKA_ENCOUNTER_PRIZE_TABLE_PATH = "data/stay/stay_en/EncountPrizeTable_5.bin";

@@ -17,6 +17,8 @@ char* target_commandset_ptr;
 int currentPlayerID = -1;
 int currentMissionID = -1;
 
+bool harukaMotionExists = false;
+
 void ApplyEncounterTables()
 {
     char buf[256];
@@ -74,7 +76,11 @@ void on_haruka_start()
     else 
     {
         target_commandset = std::string(HARUKA_COMMANDSET);
-        strcpy_s(szBattlePlayerKiryu, strlen(HARUKA_MOTION_PAR) + 1, HARUKA_MOTION_PAR);
+
+        if(harukaMotionExists)
+            strcpy_s(szBattlePlayerKiryu, strlen(HARUKA_MOTION_PAR) + 1, HARUKA_MOTION_PAR);
+        else
+            strcpy_s(szBattlePlayerKiryu, strlen(FALLBACK_MOTION_PAR) + 1, FALLBACK_MOTION_PAR);
     }
     
     ApplyEncounterTables();
@@ -147,6 +153,14 @@ DWORD WINAPI ScriptThread(HMODULE hModule)
     memcpy_s(origHarukaMovesetReference1Bytes, 7, harukaMovesetReference1, 7);
     memcpy_s(origTabakoGmtBytes, 10, tabakoPatchLocation, 10);
     target_commandset_ptr = (char*)AllocateBuffer(szHaruka);
+
+    char harukaMotionBuf[256];
+    strcpy_s(harukaMotionBuf, 256, HARUKA_MOTION_PAR_PATH);
+
+    const char* harukaMotionPath = parless_get_file_path(harukaMotionBuf);
+
+    if (std::filesystem::exists(harukaMotionPath))
+        harukaMotionExists = true;
 
     //Main code thread. Checking for player ID and mission ID and invoking events
     //Which makes it all work.

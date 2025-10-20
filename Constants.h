@@ -11,6 +11,7 @@ constexpr auto FALLBACK_SPECIAL_PROVOKE = "P_HAL_ENC_provoke";
 
 //Animation par to load if we are using HARUKA_COMMANDSET
 constexpr auto HARUKA_MOTION_PAR = "BattlePlayerHaruka";
+constexpr auto HARUKA_MOTION_PAR_PATH = "data/motion/BattlePlayerHaruka.par";
 //We'll use this animation par if we can't find HARUKA_COMMANDSET
 constexpr auto FALLBACK_MOTION_PAR = "BattlePlayerAkiyama";
 

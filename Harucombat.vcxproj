@@ -84,11 +84,16 @@
     <ClInclude Include="Constants.h" />
     <ClInclude Include="FunctionDefinitions.h" />
     <ClInclude Include="GlobalDefinitions.h" />
+    <ClInclude Include="MinHook\MinHook.h" />
     <ClInclude Include="PatternScan.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="buffer.cpp" />
     <ClCompile Include="dllmain.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <Library Include="MinHook\libMinHook.x64.lib" />
+    <Library Include="MinHook\MinHook.x64.lib" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -9,6 +9,8 @@
 #include "Constants.h"
 #include "GlobalDefinitions.h"
 #include "FunctionDefinitions.h"
+#include "MinHook/MinHook.h"
+#pragma comment(lib, "MinHook/libMinHook.x64.lib")
 
 //Commandset that we are going to use based on if we found haruka_battle or not
 std::string target_commandset;
@@ -23,8 +25,8 @@ void ApplyEncounterTables()
 {
     char buf[256];
     char buf2[256];
-    strcpy_s(buf, 256, HARUKA_ENCOUNTER_TABLE_PATH);
-    strcpy_s(buf2, 256, HARUKA_ENCOUNTER_PRIZE_TABLE_PATH);
+    strcpy_s(buf, 256, HARUKA_ENCOUNTER_TABLE);
+    strcpy_s(buf2, 256, HARUKA_ENCOUNTER_PRIZE_TABLE);
 
     const char* encounterTable5Path = parless_get_file_path(buf);
     const char* encounterPrizeTable5Path = parless_get_file_path(buf2);
@@ -40,6 +42,12 @@ void ApplyEncounterTables()
     {
         strcpy_s(szEncountPrizeTable2, strlen(HARUKA_ENCOUNTER_PRIZE_TABLE) + 1, HARUKA_ENCOUNTER_PRIZE_TABLE);
     }
+}
+
+void ActionControlTypeManager_DecideBattleStartGMT(void* ctrlTypeMan, char* gmtName)
+{
+    int mission = get_mission_id();
+    hook_originalGetBStartGmtID(ctrlTypeMan, (char*)FALLBACK_BTLST_MOTION);
 }
 
 
@@ -161,6 +169,10 @@ DWORD WINAPI ScriptThread(HMODULE hModule)
 
     if (std::filesystem::exists(harukaMotionPath))
         harukaMotionExists = true;
+
+    MH_Initialize();
+    MH_CreateHook((LPVOID)0x1406A3650, ActionControlTypeManager_DecideBattleStartGMT, (LPVOID*)&hook_originalGetBStartGmtID);
+    MH_EnableHook((LPVOID)0x1406A3650);
 
     //Main code thread. Checking for player ID and mission ID and invoking events
     //Which makes it all work.

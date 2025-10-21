@@ -13,6 +13,9 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="MinHook">
+      <UniqueIdentifier>{0b40355c-9318-48cb-9cc3-0eed42ba3c9d}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="FunctionDefinitions.h">
@@ -30,6 +33,9 @@
     <ClInclude Include="buffer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="MinHook\MinHook.h">
+      <Filter>MinHook</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp">
@@ -38,5 +44,13 @@
     <ClCompile Include="buffer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Library Include="MinHook\libMinHook.x64.lib">
+      <Filter>MinHook</Filter>
+    </Library>
+    <Library Include="MinHook\MinHook.x64.lib">
+      <Filter>MinHook</Filter>
+    </Library>
   </ItemGroup>
 </Project>

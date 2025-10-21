@@ -43,17 +43,19 @@ inline void write_relative_addr(void* instruction_start, intptr_t target, int in
 	write_int((intptr_t)offset, calcOffset);
 }
 
+typedef const char* (*t_YP_GET_FILE_PATH)(char* path);
 typedef int(__fastcall* t_GetPlayerID)();
 typedef int(__fastcall* t_GetMissionID)();
 typedef unsigned int(__fastcall* FILEMOTIONPROPERTY_GetGMTID)(CFileMotionProperty* fileMotProperty, const char* gmtName);
 typedef void(__fastcall* FIGHTERCOMMANDMANAGER_FindCommandsetID)(CFighterCommandManager* fcManager, int& out_id, const char* commandsetName);
-typedef const char* (*t_YP_GET_FILE_PATH)(char* path);
+typedef void(__fastcall* t_ActionCtrlTypeManager_GetBattleStartGMTID)(void* ctrlTypeMan, char* gmtName);
 
 t_YP_GET_FILE_PATH parless_get_file_path = (t_YP_GET_FILE_PATH)GetProcAddress(GetModuleHandle(L"YakuzaParless.asi"), "YP_GET_FILE_PATH");
 t_GetPlayerID get_player_id = (t_GetPlayerID)ReadCall2(PatternScan("E8 ? ? ? ? 48 63 8F ? ? ? ? 83 F9"));
 t_GetMissionID get_mission_id = (t_GetMissionID)ReadCall2(PatternScan("E8 ? ? ? ? C5 FA 10 35 ? ? ? ? C5 F0 57 C9 BA"));
 FILEMOTIONPROPERTY_GetGMTID FileMotionProperty_GetGMTID = (FILEMOTIONPROPERTY_GetGMTID)ReadCall2(PatternScan("E8 ? ? ? ? C5 F8 28 B4 24 ? ? ? ? 48 8B BC 24 ? ? ? ? 48 8B 9C 24"));
 FIGHTERCOMMANDMANAGER_FindCommandsetID FighterCommandManager_FindCommandsetID = (FIGHTERCOMMANDMANAGER_FindCommandsetID)ReadCall2(PatternScan("E8 ? ? ? ? 8B 5C 24 ? 89 9C B7"));
+t_ActionCtrlTypeManager_GetBattleStartGMTID hook_originalGetBStartGmtID;
 
 CFileMotionProperty* GetPropertyClass()
 {

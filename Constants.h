@@ -11,8 +11,11 @@ constexpr auto FALLBACK_SPECIAL_PROVOKE = "P_HAL_ENC_provoke";
 
 //Battle start animation to use for Haruka
 constexpr auto HARUKA_BTLST_MOTION = "E_SUG_walk_f";
-//We'll use this battle start animation if we can't find  HARUKA_BTLST_MOTION
+//We'll use this battle start animation if we can't find HARUKA_BTLST_MOTION
 constexpr auto FALLBACK_BTLST_MOTION = "HAL_TLK_stand_unhappybig";
+
+//Battle start animation to use for Haruka
+constexpr auto HARUKA_GENERIC_DEATH_MOTION = "P_HAL_ENC_DED_F_01";
 
 //Animation par to load if we are using HARUKA_COMMANDSET
 constexpr auto HARUKA_MOTION_PAR = "BattlePlayerHaruka";
@@ -23,5 +26,3 @@ constexpr auto FALLBACK_MOTION_PAR = "BattlePlayerAkiyama";
 //Encounter tables and prize to load for Haruka
 constexpr auto HARUKA_ENCOUNTER_TABLE = "data/stay/EncountTable_5.bin";
 constexpr auto HARUKA_ENCOUNTER_PRIZE_TABLE = "data/stay/EncountPrizeTable_5.bin";
-constexpr auto HARUKA_ENCOUNTER_TABLE_PATH = "data/stay/stay_en/EncountTable_5.bin";
-constexpr auto HARUKA_ENCOUNTER_PRIZE_TABLE_PATH = "data/stay/stay_en/EncountPrizeTable_5.bin";

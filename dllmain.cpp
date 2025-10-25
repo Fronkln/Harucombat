@@ -50,6 +50,31 @@ void ActionControlTypeManager_DecideBattleStartGMT(void* ctrlTypeMan, char* gmtN
     hook_originalGetBStartGmtID(ctrlTypeMan, (char*)FALLBACK_BTLST_MOTION);
 }
 
+void* fighter_mode_PlayerDeath_DecideGMT(void* fMode)
+{
+    CActionFighterManager* fman = *ActionFighterManager;
+
+    long* fighter = *(long**)((__int64)fMode + 0x20);
+    long* mainPlayer = *(long**)((__int64)fman + 0x290);
+
+    int harukaDeathGmtID = FileMotionProperty_GetGMTID(GetPropertyClass(), HARUKA_GENERIC_DEATH_MOTION);
+
+    //If not haruka or main player (main player comparison so it does not break on Intertwined Fates if Ichiban dies)
+    if (currentPlayerID != 4 || harukaDeathGmtID == 0 || fighter != mainPlayer)
+    {
+        //TODO: write OG byte
+        Patch((BYTE*)fighterModePlayerDeathGmtAddr, origPlayerDeathGMTBytes, 5);
+    }
+    else
+    {
+        write_int((uintptr_t)fighterModePlayerDeathGmtAddr + 1, harukaDeathGmtID);
+    }
+
+    void* result = hook_originalGetPDeathSetGMT(fMode);
+    return result;
+}
+
+
 
 void on_haruka_start() 
 {
@@ -109,7 +134,6 @@ void on_haruka_end()
     const char* originalMotionSet = "BattlePlayerKiryu";
     strcpy_s(szBattlePlayerKiryu, strlen(originalMotionSet) + 1, originalMotionSet);
 
-
     const char* originalEncountTable = "data/stay/EncountTable_2.bin";
     const char* originalEncountPrizeTable = "data/stay/EncountPrizeTable_2.bin";
 
@@ -157,9 +181,10 @@ DWORD WINAPI ScriptThread(HMODULE hModule)
     VirtualProtect(szEncountTable2, 128, PAGE_READWRITE, &oldProtect);
     VirtualProtect(szEncountPrizeTable2, 128, PAGE_READWRITE, &oldProtect);
  
-    //Save original values that we are going to restore when Haruka is no longer player 1
+    //Save original values that we are going to restore when Haruka is no longer player 1 or not applicable
     memcpy_s(origHarukaMovesetReference1Bytes, 7, harukaMovesetReference1, 7);
     memcpy_s(origTabakoGmtBytes, 10, tabakoPatchLocation, 10);
+    memcpy_s(origPlayerDeathGMTBytes, 5, fighterModePlayerDeathGmtAddr, 5);
     target_commandset_ptr = (char*)AllocateBuffer(szHaruka);
 
     char harukaMotionBuf[256];
@@ -171,8 +196,10 @@ DWORD WINAPI ScriptThread(HMODULE hModule)
         harukaMotionExists = true;
 
     MH_Initialize();
-    MH_CreateHook((LPVOID)0x1406A3650, ActionControlTypeManager_DecideBattleStartGMT, (LPVOID*)&hook_originalGetBStartGmtID);
-    MH_EnableHook((LPVOID)0x1406A3650);
+    MH_CreateHook(battleStartDecideGmtFuncAddr, ActionControlTypeManager_DecideBattleStartGMT, (LPVOID*)&hook_originalGetBStartGmtID);
+    MH_CreateHook(fighterModePlayerDeathGmtFuncAddr, fighter_mode_PlayerDeath_DecideGMT, (LPVOID*)&hook_originalGetPDeathSetGMT);
+    MH_EnableHook(battleStartDecideGmtFuncAddr);
+    MH_EnableHook(fighterModePlayerDeathGmtFuncAddr);
 
     //Main code thread. Checking for player ID and mission ID and invoking events
     //Which makes it all work.

@@ -5,10 +5,12 @@ class CSequenceManager;
 class CActionMotionManager;
 class CFileMotionProperty;
 class CFighterCommandManager;
+class CActionFighterManager;
 
 CSequenceManager** SequenceManager = (CSequenceManager**)resolve_relative_addr(PatternScan("48 8B 05 ? ? ? ? 48 85 C0 74 ? 48 8B 40 ? 48 63 88"), 7);
 CActionMotionManager** ActionMotionManager = (CActionMotionManager**)resolve_relative_addr(PatternScan("48 8B 0D ? ? ? ? 4C 8D 4D ? C5 FA 11 45"), 7);
 CFighterCommandManager** FighterCommandManager = (CFighterCommandManager**)resolve_relative_addr(PatternScan("48 8B 0D ? ? ? ? 48 8D 54 24 ? E8 ? ? ? ? 8B 5C 24"), 7);
+CActionFighterManager** ActionFighterManager = (CActionFighterManager**)(resolve_relative_addr((PatternScan("48 8B 3D ? ? ? ? C5 F8 29 74 24 50")), 7));
 
 BYTE* encounter_table_player_check_addr = (BYTE*)PatternScan("0F 84 ? ? ? ? 83 E9 ? 74 ? 83 F9 ? 0F 85 ? ? ? ? 89 8B");
 char* szBattlePlayerKiryu = (char*)resolve_relative_addr(PatternScan("4C 8D 05 ? ? ? ? EB ? 4C 8D 05 ? ? ? ? EB ? 4C 8D 05 ? ? ? ? EB ? 4C 8D 05 ? ? ? ? 8B 05"), 7);
@@ -26,3 +28,8 @@ BYTE origHarukaMovesetReference1Bytes[7];
 //to play a different animation for Haruka-chan
 BYTE* tabakoPatchLocation = PatternScan("? ? 90 00 00 00 93 28");
 BYTE origTabakoGmtBytes[10];
+
+LPVOID battleStartDecideGmtFuncAddr = PatternScan("40 53 48 83 EC ? C7 81 ? ? ? ? ? ? ? ? 48 8B D9 48 85 D2");
+LPVOID fighterModePlayerDeathGmtFuncAddr = PatternScan("48 89 5C 24 ? 57 48 83 EC ? 48 8B F9 48 83 C1 ? E8 ? ? ? ? 48 8B C8 45 33 C0");
+LPVOID fighterModePlayerDeathGmtAddr = PatternScan("BA ? ? ? ? E8 ? ? ? ? 48 8B CF 48 8B 5C 24");
+BYTE origPlayerDeathGMTBytes[5];

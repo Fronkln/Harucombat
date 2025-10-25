@@ -185,7 +185,12 @@ DWORD WINAPI ScriptThread(HMODULE hModule)
     memcpy_s(origHarukaMovesetReference1Bytes, 7, harukaMovesetReference1, 7);
     memcpy_s(origTabakoGmtBytes, 10, tabakoPatchLocation, 10);
     memcpy_s(origPlayerDeathGMTBytes, 5, fighterModePlayerDeathGmtAddr, 5);
-    target_commandset_ptr = (char*)AllocateBuffer(szHaruka);
+
+    //Enable Weapon Skill tab for Haruka by changing condition to player ID 100 check (impossible)
+    BYTE impossiblePlayerID[] = {0x64};
+    Patch(PatternScan("83 F8 ? 0F 84 ? ? ? ? E9 ? ? ? ? 45 85 F6") + 2, impossiblePlayerID, 1);
+    Patch(PatternScan("83 F8 ? 74 ? 41 B8 ? ? ? ? 48 8B CF") + 2, impossiblePlayerID, 1);
+    Patch(PatternScan("83 F8 ? 75 ? 41 FF D0 8B D0 48 8B CB E8 ? ? ? ? BA") + 2, impossiblePlayerID, 1);
 
     char harukaMotionBuf[256];
     strcpy_s(harukaMotionBuf, 256, HARUKA_MOTION_PAR_PATH);
@@ -194,6 +199,8 @@ DWORD WINAPI ScriptThread(HMODULE hModule)
 
     if (std::filesystem::exists(harukaMotionPath))
         harukaMotionExists = true;
+
+    target_commandset_ptr = (char*)AllocateBuffer(szHaruka);
 
     MH_Initialize();
     MH_CreateHook(battleStartDecideGmtFuncAddr, ActionControlTypeManager_DecideBattleStartGMT, (LPVOID*)&hook_originalGetBStartGmtID);

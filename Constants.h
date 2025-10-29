@@ -26,3 +26,9 @@ constexpr auto FALLBACK_MOTION_PAR = "BattlePlayerAkiyama";
 //Encounter tables and prize to load for Haruka
 constexpr auto HARUKA_ENCOUNTER_TABLE = "data/stay/EncountTable_5.bin";
 constexpr auto HARUKA_ENCOUNTER_PRIZE_TABLE = "data/stay/EncountPrizeTable_5.bin";
+
+//Colliseum model of Haruka
+constexpr auto HARUKA_TOUGI_MODEL = "c_cw_haruka_tougi";
+constexpr auto HARUKA_TOUGI_NAME = "Amane";
+
+constexpr auto HARUKA_TOUGI_PARTNER = 101; //Kazuma Keeryu

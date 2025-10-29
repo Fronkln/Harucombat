@@ -47,7 +47,7 @@ void ApplyEncounterTables()
 void ActionControlTypeManager_DecideBattleStartGMT(void* ctrlTypeMan, char* gmtName)
 {
     int mission = get_mission_id();
-    hook_originalGetBStartGmtID(ctrlTypeMan, (char*)FALLBACK_BTLST_MOTION);
+    hook_original_GetBStartGmtID(ctrlTypeMan, (char*)FALLBACK_BTLST_MOTION);
 }
 
 void* fighter_mode_PlayerDeath_DecideGMT(void* fMode)
@@ -70,11 +70,52 @@ void* fighter_mode_PlayerDeath_DecideGMT(void* fMode)
         write_int((uintptr_t)fighterModePlayerDeathGmtAddr + 1, harukaDeathGmtID);
     }
 
-    void* result = hook_originalGetPDeathSetGMT(fMode);
+    void* result = hook_original_GetPDeathSetGMT(fMode);
     return result;
 }
 
+int tougi_get_player_id() {
+    
+    if (currentPlayerID == 4)
+        return 4;
 
+    return hook_original_tougi_get_player_id();
+}
+
+int tougi_get_ctrltype_id(int index)
+{
+    //tougijyo_participant.bin haruka ID
+    if (index == 52)
+        return 4; //c_cm_haruka... EPIC FAIL!
+
+    return hook_original_tougi_get_ctrltype(index);
+}
+
+void create_human_player(void* unk1, __int64 unk2, __int64 unk3)
+{
+    if (currentPlayerID != 4 || get_mission_id() != 407)
+    {
+        hook_original_create_human_player(unk1, unk2, unk3);
+        return;
+    }
+
+    //Colliseum model for Haruka because why not
+    //TODO: check if HARUKA_TOUGI_MODEL is a valid model
+    CSequenceManager* seqManager = *SequenceManager;
+    __int64* missionDataPtr = *(__int64**)((__int64)seqManager + 0x50);
+    short* pxdHashPointer = (short*)((__int64)missionDataPtr + 0x398);
+    
+    //this sucks
+    char* imlosingit = (char*)malloc(30);
+
+    *pxdHashPointer = 1790;
+    memcpy_s((char*)pxdHashPointer + 2, 30, (void*)imlosingit, 30);
+    strcpy_s((char*)pxdHashPointer + 2, strlen(HARUKA_TOUGI_MODEL) + 1, HARUKA_TOUGI_MODEL);
+
+    free(imlosingit);
+
+    hook_original_create_human_player(unk1, unk2, unk3);
+}
 
 void on_haruka_start() 
 {
@@ -119,6 +160,13 @@ void on_haruka_start()
     ApplyEncounterTables();
 
     strcpy_s(target_commandset_ptr, target_commandset.size() + 1, target_commandset.c_str());
+
+    MH_EnableHook(fighterModePlayerDeathGmtFuncAddr);
+    MH_EnableHook(tougiGetPlayerIDAddr);
+    MH_EnableHook(createHumanPlayerAddr);
+    MH_EnableHook(getCtrlTypeForFighterAddr);
+    
+    *szNameShinadaPtr = (char*)HARUKA_TOUGI_NAME;
 }
 
 void on_haruka_end() 
@@ -139,6 +187,13 @@ void on_haruka_end()
 
     strcpy_s(szEncountTable2, strlen(originalEncountTable) + 1, originalEncountTable);
     strcpy_s(szEncountPrizeTable2, strlen(originalEncountPrizeTable) + 1, originalEncountPrizeTable);
+
+    MH_DisableHook(fighterModePlayerDeathGmtFuncAddr);
+    MH_DisableHook(tougiGetPlayerIDAddr);
+    MH_DisableHook(createHumanPlayerAddr);
+    MH_DisableHook(getCtrlTypeForFighterAddr);
+
+    *szNameShinadaPtr = szNameShinada;
 }
 
 void on_combat_start()
@@ -162,10 +217,15 @@ void on_player_id_change(int oldID, int newID)
         on_haruka_start();
 }
 
+bool is_battle_mission(int missionID)
+{
+    return missionID == 400 || missionID == 401 || missionID == 407 || missionID == 408;
+}
+
 void on_mission_change(int oldMission, int newMission) 
 {
-    bool oldMissionWasBattle = oldMission == 400 || oldMission == 401 || oldMission == 408;
-    bool newMissionIsBattle = newMission == 400 || newMission == 401 || newMission == 408;
+    bool oldMissionWasBattle = is_battle_mission(oldMission);
+    bool newMissionIsBattle = is_battle_mission(newMission);
 
     if (newMissionIsBattle)
         on_combat_start();
@@ -180,7 +240,11 @@ DWORD WINAPI ScriptThread(HMODULE hModule)
     VirtualProtect(szBattlePlayerKiryu, 32, PAGE_READWRITE, &oldProtect);
     VirtualProtect(szEncountTable2, 128, PAGE_READWRITE, &oldProtect);
     VirtualProtect(szEncountPrizeTable2, 128, PAGE_READWRITE, &oldProtect);
- 
+    VirtualProtect(szCmHaruka, 32, PAGE_READWRITE, &oldProtect);
+
+    //Fix c_cm_haruka to the appopriate modelname
+    strcpy_s(szCmHaruka, strlen(HARUKA_TOUGI_MODEL) + 1, HARUKA_TOUGI_MODEL);
+
     //Save original values that we are going to restore when Haruka is no longer player 1 or not applicable
     memcpy_s(origHarukaMovesetReference1Bytes, 7, harukaMovesetReference1, 7);
     memcpy_s(origTabakoGmtBytes, 10, tabakoPatchLocation, 10);
@@ -192,6 +256,18 @@ DWORD WINAPI ScriptThread(HMODULE hModule)
     Patch(PatternScan("83 F8 ? 74 ? 41 B8 ? ? ? ? 48 8B CF") + 2, impossiblePlayerID, 1);
     Patch(PatternScan("83 F8 ? 75 ? 41 FF D0 8B D0 48 8B CB E8 ? ? ? ? BA") + 2, impossiblePlayerID, 1);
 
+    //Create coliseum partner for Haruka (hardcoded for some reason)
+    auto ogPartnerTable = PatternScan("48 8D 05 ? ? ? ? 8B 1C 90 E8 ? ? ? ? 48 8B 0D");
+    auto partnerBuffer = (int*)AllocateBuffer(ogPartnerTable);
+
+    partnerBuffer[0] = 0xB2;
+    partnerBuffer[1] = 0xB4;
+    partnerBuffer[2] = 0xB3;
+    partnerBuffer[3] = 0xB5;
+    partnerBuffer[4] = HARUKA_TOUGI_PARTNER;
+
+    write_relative_addr(ogPartnerTable, (intptr_t)partnerBuffer, 7);
+
     char harukaMotionBuf[256];
     strcpy_s(harukaMotionBuf, 256, HARUKA_MOTION_PAR_PATH);
 
@@ -202,11 +278,15 @@ DWORD WINAPI ScriptThread(HMODULE hModule)
 
     target_commandset_ptr = (char*)AllocateBuffer(szHaruka);
 
+    getCtrlTypeForFighterAddr = (LPVOID)ReadCall2(ReadCall2(PatternScan("E8 ? ? ? ? 48 8B 0D ? ? ? ? 8B D0 E8 ? ? ? ? 48 8D 4C 24")));
+
     MH_Initialize();
-    MH_CreateHook(battleStartDecideGmtFuncAddr, ActionControlTypeManager_DecideBattleStartGMT, (LPVOID*)&hook_originalGetBStartGmtID);
-    MH_CreateHook(fighterModePlayerDeathGmtFuncAddr, fighter_mode_PlayerDeath_DecideGMT, (LPVOID*)&hook_originalGetPDeathSetGMT);
+    MH_CreateHook(battleStartDecideGmtFuncAddr, ActionControlTypeManager_DecideBattleStartGMT, (LPVOID*)&hook_original_GetBStartGmtID);
+    MH_CreateHook(fighterModePlayerDeathGmtFuncAddr, fighter_mode_PlayerDeath_DecideGMT, (LPVOID*)&hook_original_GetPDeathSetGMT);
+    MH_CreateHook(tougiGetPlayerIDAddr, tougi_get_player_id, (LPVOID*)&hook_original_tougi_get_player_id);
+    MH_CreateHook(createHumanPlayerAddr, create_human_player, (LPVOID*)&hook_original_create_human_player);
+    MH_CreateHook(getCtrlTypeForFighterAddr, tougi_get_ctrltype_id, (LPVOID*)&hook_original_tougi_get_ctrltype);
     MH_EnableHook(battleStartDecideGmtFuncAddr);
-    MH_EnableHook(fighterModePlayerDeathGmtFuncAddr);
 
     //Main code thread. Checking for player ID and mission ID and invoking events
     //Which makes it all work.

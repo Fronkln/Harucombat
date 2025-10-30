@@ -10,7 +10,7 @@ constexpr auto HARUKA_SPECIAL_PROVOKE = "P_HAL_ENC_provoke2";
 constexpr auto FALLBACK_SPECIAL_PROVOKE = "P_HAL_ENC_provoke";
 
 //Battle start animation to use for Haruka
-constexpr auto HARUKA_BTLST_MOTION = "E_SUG_walk_f";
+constexpr auto HARUKA_BTLST_MOTION = "HAL_TLK_stand_unhappybig";
 //We'll use this battle start animation if we can't find HARUKA_BTLST_MOTION
 constexpr auto FALLBACK_BTLST_MOTION = "HAL_TLK_stand_unhappybig";
 

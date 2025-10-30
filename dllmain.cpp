@@ -44,12 +44,6 @@ void ApplyEncounterTables()
     }
 }
 
-void ActionControlTypeManager_DecideBattleStartGMT(void* ctrlTypeMan, char* gmtName)
-{
-    int mission = get_mission_id();
-    hook_original_GetBStartGmtID(ctrlTypeMan, (char*)FALLBACK_BTLST_MOTION);
-}
-
 void* fighter_mode_PlayerDeath_DecideGMT(void* fMode)
 {
     CActionFighterManager* fman = *ActionFighterManager;
@@ -72,6 +66,30 @@ void* fighter_mode_PlayerDeath_DecideGMT(void* fMode)
 
     void* result = hook_original_GetPDeathSetGMT(fMode);
     return result;
+}
+
+void* fighter_mode_BattleStart_Constructor(void* fMode, long* fighter)
+{
+    CActionFighterManager* fman = *ActionFighterManager;
+
+    long* mainPlayer = *(long**)((__int64)fman + 0x290);
+    int harukaBattleStartGMTID = FileMotionProperty_GetGMTID(GetPropertyClass(), HARUKA_BTLST_MOTION);
+
+    if(harukaBattleStartGMTID == 0)
+        harukaBattleStartGMTID = FileMotionProperty_GetGMTID(GetPropertyClass(), FALLBACK_BTLST_MOTION);
+
+    //If not haruka or main player (main player comparison so it does not break on Intertwined Fates if Ichiban dies)
+    if (currentPlayerID != 4 || fighter != mainPlayer)
+        return hook_original_BattleStartConstructor(fMode, fighter);
+    else
+    {
+        CActionCtrlTypeManager* ctrlMan = *ActionCtrlTypeManager;
+        
+        int* gmtID = (int*)((__int64)ctrlMan + 0x390);
+        *gmtID = harukaBattleStartGMTID;
+    }
+
+    return hook_original_BattleStartConstructor(fMode, fighter);
 }
 
 int tougi_get_player_id() {
@@ -279,14 +297,15 @@ DWORD WINAPI ScriptThread(HMODULE hModule)
     target_commandset_ptr = (char*)AllocateBuffer(szHaruka);
 
     getCtrlTypeForFighterAddr = (LPVOID)ReadCall2(ReadCall2(PatternScan("E8 ? ? ? ? 48 8B 0D ? ? ? ? 8B D0 E8 ? ? ? ? 48 8D 4C 24")));
+    fighterModeBattleStartConstructorFuncAddr = (LPVOID)ReadCall2(PatternScan("E8 ? ? ? ? 48 8B D8 EB ? 33 DB E9 ? ? ? ? E8 ? ? ? ? 48 8B D8"));
 
     MH_Initialize();
-    MH_CreateHook(battleStartDecideGmtFuncAddr, ActionControlTypeManager_DecideBattleStartGMT, (LPVOID*)&hook_original_GetBStartGmtID);
     MH_CreateHook(fighterModePlayerDeathGmtFuncAddr, fighter_mode_PlayerDeath_DecideGMT, (LPVOID*)&hook_original_GetPDeathSetGMT);
     MH_CreateHook(tougiGetPlayerIDAddr, tougi_get_player_id, (LPVOID*)&hook_original_tougi_get_player_id);
     MH_CreateHook(createHumanPlayerAddr, create_human_player, (LPVOID*)&hook_original_create_human_player);
     MH_CreateHook(getCtrlTypeForFighterAddr, tougi_get_ctrltype_id, (LPVOID*)&hook_original_tougi_get_ctrltype);
-    MH_EnableHook(battleStartDecideGmtFuncAddr);
+    MH_CreateHook(fighterModeBattleStartConstructorFuncAddr, fighter_mode_BattleStart_Constructor, (LPVOID*)&hook_original_BattleStartConstructor);
+    MH_EnableHook(fighterModeBattleStartConstructorFuncAddr);
 
     //Main code thread. Checking for player ID and mission ID and invoking events
     //Which makes it all work.
